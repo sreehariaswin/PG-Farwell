@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Last Day of Class · Saturday, 28 November 2026</title>
-<meta name="description" content="Farewell for our PG Ayurveda seniors. Saturday, 28 November 2026, 10 am – 3 pm at Maurya Rajdhani. Attendance compulsory.">
-<meta property="og:title" content="The Last Day of Class – farewell for our PG Ayurveda seniors">
-<meta property="og:description" content="Saturday, 28 November 2026 · 10 am – 3 pm · Maurya Rajdhani. Attendance compulsory!">
+<title>Lamhe · Farewell · Saturday, 28 November 2026</title>
+<meta name="description" content="Lamhe – for the moments we shared and memories we carried. Farewell for our PG Ayurveda seniors. Saturday, 28 November 2026, 10 am – 3 pm at Maurya Rajdhani.">
+<meta property="og:title" content="Lamhe – farewell for our PG Ayurveda seniors">
+<meta property="og:description" content="For the moments we shared and memories we carried. Saturday, 28 November 2026 · 10 am – 3 pm · Maurya Rajdhani">
 <meta property="og:image" content="seniors.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -84,14 +84,14 @@
   h1 {
     font-family: var(--hand);
     font-weight: 700;
-    font-size: clamp(2.6rem, 11vw, 4.6rem);
+    font-size: clamp(4rem, 19vw, 7rem);
     line-height: 1.05;
     margin: 0;
     color: var(--blue);
     letter-spacing: -.01em;
   }
   .underline { display: block; width: min(100%, 22rem); height: 14px; margin-top: .1rem; }
-  .sub { font-size: clamp(1.2rem, 4vw, 1.6rem); margin: .8rem 0 0; }
+  .sub { font-size: clamp(1.1rem, 3.6vw, 1.45rem); margin: .8rem 0 0; max-width: 24em; }
   .grade {
     position: absolute; right: 0; top: -.4rem;
     font-family: var(--note); font-weight: 700; color: var(--red);
@@ -196,7 +196,7 @@
 
   /* ---------- Signature ---------- */
   .end { margin: 3rem 0 0; }
-  .end .sig { font-family: var(--note); font-weight: 700; font-size: clamp(2.2rem, 8vw, 3.2rem); line-height: 1.1; margin: 0; }
+  .end .sig { font-family: var(--note); font-weight: 700; font-size: clamp(2rem, 7vw, 2.9rem); line-height: 1.15; margin: 0; max-width: 16em; }
   .end .shloka { margin: .8rem 0 0; color: var(--red); font-weight: 700; }
   .end .tr { margin: 0; font-size: .95rem; color: var(--ink); }
 
@@ -252,9 +252,9 @@
   </div>
 
   <header class="title">
-    <h1>The Last Day of Class</h1>
+    <h1>Lamhe</h1>
     <svg class="underline" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C40 2 70 12 110 7 S190 3 230 8 S280 6 298 5" fill="none" stroke="#c0272d" stroke-width="3.5" stroke-linecap="round"/></svg>
-    <p class="sub">for our dearest seniors</p>
+    <p class="sub">For the moments we shared and memories we carried</p>
     <div class="grade" aria-hidden="true"><b>A+</b>best seniors!</div>
   </header>
 
@@ -291,8 +291,10 @@
 
   <section class="letter">
     <p>Dear Seniors,</p>
-    <p>From long OPD mornings to late-night duties, you taught us more than any textbook ever could. Before you go, let’s sit together one last time, laugh at the old stories and make one more memory.</p>
-    <p class="sign">– Your juniors</p>
+    <p>From identifying every leaf and root to exploring the mysteries hidden under a microscope, from endless OP hours to never-ending thesis discussions, you have taught us that Dravyaguna is much more than just a subject.</p>
+    <p>As you turn a new page in your journey, let’s gather one last time, revisit our memories, laugh about those hectic practicals, unforgettable OP days, thesis struggles and countless moments that made this journey special.</p>
+    <p>Because some bonds, just like certain Prabhavas, are beyond explanation!</p>
+    <p class="sign">With love,<br>Your Juniors 🌱</p>
   </section>
 
   <div class="notes">
@@ -312,8 +314,8 @@
   </section>
 
   <footer class="end">
-    <!-- EDIT: signature -->
-    <p class="sig">With love, your juniors</p>
+    <!-- EDIT: closing quotation -->
+    <p class="sig">Some chapters end, but their Prabhava remains forever.</p>
     <p class="shloka" lang="sa">सर्वे भवन्तु सुखिनः</p>
     <p class="tr">May all be happy.</p>
   </footer>
@@ -361,7 +363,7 @@
     "&details=" + encodeURIComponent("Please join us to say thank you and goodbye.");
 
   document.getElementById("share").addEventListener("click", function () {
-    var msg = "You’re invited to our seniors’ farewell – The Last Day of Class.\nSaturday, 28 November 2026, 10 am – 3 pm\nMaurya Rajdhani\nAttendance compulsory!\n" + location.href;
+    var msg = "You’re invited to Lamhe – the farewell for our PG Ayurveda seniors.\nSaturday, 28 November 2026, 10 am – 3 pm\nMaurya Rajdhani\n" + location.href;
     window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
   });
 
