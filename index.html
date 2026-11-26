@@ -283,6 +283,18 @@
     height: 3px; background: var(--red); border-radius: 2px; transform: rotate(-35deg);
   }
 
+  .mus-hint {
+    display: none;
+    position: fixed; right: 84px; bottom: 22px; z-index: 50;
+    max-width: min(60vw, 15rem);
+    padding: .5rem .8rem;
+    background: var(--yellow); color: var(--ink);
+    font-family: var(--note); font-weight: 700; font-size: 1.2rem; line-height: 1.15;
+    border-radius: 3px; box-shadow: 0 4px 9px rgba(0,0,0,.3);
+    transform: rotate(-2deg);
+  }
+  .mus-hint.show { display: block; }
+
   @keyframes pulse { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -336,6 +348,7 @@
     <path d="M14 31l3-8h14l3 8"/>
   </svg>
 </button>
+<div class="mus-hint" id="musHint" role="status" aria-live="polite"></div>
 
 <main class="sheet">
   <div class="holes" aria-hidden="true"></div>
@@ -505,6 +518,16 @@
     var audio = null, blobUrl = "", started = false, faded = false, wasPlaying = false;
     var retries = 0, fadeTimer = null;
 
+    var hint = document.getElementById("musHint");
+    var hintTimer = null;
+    function showHint(msg) {
+      hint.textContent = msg;
+      hint.classList.add("show");
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(function () { hint.classList.remove("show"); }, 7000);
+    }
+    function hideHint() { hint.classList.remove("show"); clearTimeout(hintTimer); }
+
     function setPlaying(on) {
       mus.classList.toggle("playing", on);
       mus.setAttribute("aria-pressed", on ? "true" : "false");
@@ -522,12 +545,18 @@
       }, 120);
     }
 
-    // If the stream breaks part-way, reload the song and carry on from the same spot.
+    // If playback breaks, try the other source (downloaded copy / direct file) from the same spot.
     function recover() {
-      if (!started || retries >= 4) return;
+      if (!started) return;
+      var code = audio.error ? audio.error.code : 0;
+      if (retries >= 3) {
+        showHint("Song couldn’t play (code " + code + "). Tap the cassette to retry.");
+        return;
+      }
       retries++;
       var t = audio.currentTime || 0;
-      audio.src = blobUrl || (SONG + (SONG.indexOf("?") < 0 ? "?" : "&") + "r=" + Date.now());
+      var direct = SONG + (SONG.indexOf("?") < 0 ? "?" : "&") + "r=" + Date.now();
+      audio.src = (retries % 2 === 1 && blobUrl && audio.src.indexOf("blob:") !== 0) ? blobUrl : direct;
       audio.load();
       audio.addEventListener("loadedmetadata", function seek() {
         audio.removeEventListener("loadedmetadata", seek);
@@ -552,6 +581,7 @@
       audio.addEventListener("playing", function () {
         setPlaying(true);
         mus.classList.add("on");
+        hideHint();
         if (!faded) { faded = true; fadeIn(); }
       });
       audio.addEventListener("pause", function () { setPlaying(false); });
@@ -568,7 +598,7 @@
           .then(function (r) { if (!r.ok) throw new Error("song"); return r.blob(); })
           .then(function (b) {
             if (!b.size) return;
-            blobUrl = URL.createObjectURL(new Blob([b], { type: mimeFor(SONG) }));
+            blobUrl = URL.createObjectURL(b.type ? b : new Blob([b], { type: mimeFor(SONG) }));
             if (!started) audio.src = blobUrl;
           })
           .catch(function () {});
@@ -578,7 +608,13 @@
     coverBtn.addEventListener("click", function () {
       gate.classList.add("open");
       started = true;
-      if (audio) audio.play().catch(function () {});
+      if (audio) {
+        mus.classList.add("on");           // always show the cassette so music can be started by hand
+        audio.play().catch(function () {});
+        setTimeout(function () {
+          if (audio && audio.paused) showHint("Tap the cassette to play music 🎧");
+        }, 2000);
+      }
       setTimeout(function () {
         gate.hidden = true;
         gate.style.display = "none";
@@ -589,8 +625,15 @@
 
     mus.addEventListener("click", function () {
       if (!audio) return;
-      if (audio.paused) { try { audio.volume = VOLUME; } catch (e) {} audio.play().catch(function () {}); }
-      else { audio.pause(); }
+      if (audio.paused) {
+        try { audio.volume = VOLUME; } catch (e) {}
+        if (audio.error) {               // song failed earlier: reload it and try again
+          retries = 0;
+          audio.src = blobUrl || (SONG + (SONG.indexOf("?") < 0 ? "?" : "&") + "r=" + Date.now());
+          audio.load();
+        }
+        audio.play().catch(function () { showHint("Your browser blocked the sound. Check this site’s sound setting."); });
+      } else { audio.pause(); }
     });
 
     document.addEventListener("visibilitychange", function () {
