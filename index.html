@@ -502,16 +502,8 @@
     var gate = document.getElementById("gate");
     var coverBtn = document.getElementById("coverBtn");
     var mus = document.getElementById("mus");
-    var audio = null;
-    var wasPlaying = false;
-
-    if (SONG) {
-      audio = new Audio(SONG);
-      audio.loop = true;
-      audio.preload = "auto";
-      audio.volume = 0;
-      audio.addEventListener("error", function () { mus.classList.remove("on"); audio = null; });
-    }
+    var audio = null, blobUrl = "", started = false, faded = false, wasPlaying = false;
+    var retries = 0, fadeTimer = null;
 
     function setPlaying(on) {
       mus.classList.toggle("playing", on);
@@ -521,24 +513,72 @@
 
     function fadeIn() {
       var v = 0;
-      var iv = setInterval(function () {
-        if (!audio) { clearInterval(iv); return; }
+      clearInterval(fadeTimer);
+      try { audio.volume = 0; } catch (e) {}
+      fadeTimer = setInterval(function () {
         v += 0.02;
-        audio.volume = Math.min(v, VOLUME);
-        if (v >= VOLUME) clearInterval(iv);
+        try { audio.volume = Math.min(v, VOLUME); } catch (e) {}
+        if (v >= VOLUME) clearInterval(fadeTimer);
       }, 120);
+    }
+
+    // If the stream breaks part-way, reload the song and carry on from the same spot.
+    function recover() {
+      if (!started || retries >= 4) return;
+      retries++;
+      var t = audio.currentTime || 0;
+      audio.src = blobUrl || (SONG + (SONG.indexOf("?") < 0 ? "?" : "&") + "r=" + Date.now());
+      audio.load();
+      audio.addEventListener("loadedmetadata", function seek() {
+        audio.removeEventListener("loadedmetadata", seek);
+        try { audio.currentTime = t; } catch (e) {}
+      });
+      audio.play().catch(function () {});
+    }
+
+    function mimeFor(name) {
+      if (/\.m4a$|\.mp4$|\.aac$/i.test(name)) return "audio/mp4";
+      if (/\.ogg$|\.oga$/i.test(name)) return "audio/ogg";
+      if (/\.wav$/i.test(name)) return "audio/wav";
+      return "audio/mpeg";
+    }
+
+    if (SONG) {
+      audio = new Audio();
+      audio.loop = true;
+      audio.preload = "auto";
+      audio.src = SONG;
+
+      audio.addEventListener("playing", function () {
+        setPlaying(true);
+        mus.classList.add("on");
+        if (!faded) { faded = true; fadeIn(); }
+      });
+      audio.addEventListener("pause", function () { setPlaying(false); });
+      audio.addEventListener("error", recover);
+      audio.addEventListener("stalled", function () {
+        setTimeout(function () {
+          if (started && !audio.paused && audio.readyState < 3) recover();
+        }, 6000);
+      });
+
+      // Download the whole song while the cover is showing, so it never cuts off mid-way.
+      if (window.fetch && window.URL) {
+        fetch(SONG)
+          .then(function (r) { if (!r.ok) throw new Error("song"); return r.blob(); })
+          .then(function (b) {
+            if (!b.size) return;
+            blobUrl = URL.createObjectURL(new Blob([b], { type: mimeFor(SONG) }));
+            if (!started) audio.src = blobUrl;
+          })
+          .catch(function () {});
+      }
     }
 
     coverBtn.addEventListener("click", function () {
       gate.classList.add("open");
-      if (audio) {
-        var tryPlay = audio.play();
-        if (tryPlay && tryPlay.then) {
-          tryPlay.then(function () {
-            fadeIn(); setPlaying(true); mus.classList.add("on");
-          }).catch(function () { /* file missing or blocked: no music button */ });
-        }
-      }
+      started = true;
+      if (audio) audio.play().catch(function () {});
       setTimeout(function () {
         gate.hidden = true;
         gate.style.display = "none";
@@ -549,14 +589,14 @@
 
     mus.addEventListener("click", function () {
       if (!audio) return;
-      if (audio.paused) { audio.volume = VOLUME; audio.play(); setPlaying(true); }
-      else { audio.pause(); setPlaying(false); }
+      if (audio.paused) { try { audio.volume = VOLUME; } catch (e) {} audio.play().catch(function () {}); }
+      else { audio.pause(); }
     });
 
     document.addEventListener("visibilitychange", function () {
-      if (!audio) return;
+      if (!audio || !started) return;
       if (document.hidden) { wasPlaying = !audio.paused; audio.pause(); }
-      else if (wasPlaying) { audio.play(); wasPlaying = false; }
+      else if (wasPlaying) { audio.play().catch(function () {}); wasPlaying = false; }
     });
   })();
 </script>
